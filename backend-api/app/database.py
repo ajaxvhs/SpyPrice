@@ -1,8 +1,7 @@
-import os
+import os, asyncio, asyncpg
 
 from dotenv import load_dotenv
-
-import asyncpg
+from asyncpg import CannotConnectNowError
 
 load_dotenv()
 
@@ -15,14 +14,24 @@ pool = None
 
 async def create_pool():
     global pool
-    try:
-        pool = await asyncpg.create_pool(
+    max_retries = 5
+    for attempt in range(1, max_retries + 1):
+        try:
+            pool = await asyncpg.create_pool(
             DATABASE_URL, min_size=1, max_size=5, timeout=10, command_timeout=5
-        )
-        print('Pool de conexões criado')
-    except Exception as e:
-        print(f"Erro ao criar pool de conexões: {e}")
-        raise
+            )
+            print('Pool de conexões criado')
+            return
+        except CannotConnectNowError:
+            if attempt < max_retries:
+                print(f"Banco ainda iniciando, tentativa {attempt}/{max_retries}...")
+                await asyncio.sleep(3)
+            else:
+                print("Banco não subiu após 5 tentativas")
+                raise
+        except Exception as e:
+            print(f"Erro ao criar pool de conexões: {e}")
+            raise
 
 async def close_pool():
     global pool
