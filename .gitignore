@@ -1,0 +1,14 @@
+# Security
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Docker Files
+postgres_data/
+
+# Tests
+scripts/
+docs/tests
