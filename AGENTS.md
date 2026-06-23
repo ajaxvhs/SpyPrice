@@ -5,6 +5,11 @@
 - NUNCA criar/editar/deletar arquivos sem perguntar antes.
 - Apos alteracao significativa, atualizar este arquivo.
 - Ao preparar commit, mostrar mensagem completa ao usuario para validacao antes de executar.
+- Se algo nao estiver claro, pergunte antes de escrever uma unica linha. Nunca faca suposicoes silenciosas sobre intencao, arquitetura ou requisitos.
+- Sempre implemente a coisa mais simples que poderia funcionar. Nao adicione abstracoes ou flexibilidade que nao foram explicitamente solicitadas.
+- Se um arquivo ou funcao nao faz parte diretamente da tarefa atual, nao o modifique, mesmo que voce ache que ele poderia ser melhorado.
+- Se voce nao estiver confiante sobre uma abordagem ou detalhe tecnico, diga isso antes de prosseguir. A confianca sem certeza causa mais danos do que admitir uma lacuna.
+- Analise criticamente cada solicitacao: identifique problemas, ambiguidades e riscos antes de executar. Sugira alteracoes que julgar convenientes, mesmo quando nao solicitado. Nao aceite instrucoes cegamente.
 
 ## Projeto
 
