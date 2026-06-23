@@ -22,9 +22,13 @@ services:
   backend-api:
     build: ./backend-api
     container_name: spyprice_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend-api/app:/app/app
     environment:
+      WATCHFILES_FORCE_POLLING: "true"     # hot-reload no Windows
       DB_HOST: postgres-db
       DB_PORT: ${DB_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
