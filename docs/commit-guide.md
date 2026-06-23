@@ -40,22 +40,21 @@ Toda mensagem de commit deve seguir a seguinte estrutura:
 | `scraper`  | backend-scraper/                                                |
 | `frontend` | frontend/                                                       |
 | `notion`   | scripts/notion.py                                               |
-| `docs`     | Arquivos em docs/ ou AGENTS.md                                  |
 
 ## ✅ Exemplos Reais
 
-```text
-feat(api): add get and post /produtos endpoints
-
-- backend-api/app/main.py: add GET /produtos and POST /produtos routes
-- POST uses query param (?nome=foo), not JSON body
-```
+### Preferido pelo usuário (cada linha do corpo começa com `-`)
 
 ```text
-fix(db): change fk columns from integer to uuid
+feat(api): add complete crud for products
 
-- db/init.sql: product_id and link_id now match uuid primary keys
+- Implement GET /produtos/{id}, PUT /produtos/{id}, DELETE /produtos/{id}
+- Convert POST /produtos to JSON body with ProductCreate schema
+- Add pagination (limit/offset) to GET /produtos
+- Add ProductUpdate and ProductResponse Pydantic schemas
 ```
+
+### Alternativos (menos detalhados)
 
 ```text
 chore(infra): add healthcheck and bind ports to localhost
@@ -76,8 +75,10 @@ docs(notion): update infra page with current compose config
 
 - Mensagens **sempre em inglês**
 - Usar **sempre** `tipo(escopo): descrição` (espaço depois dos dois pontos)
+- `docs:` **não usa escopo** — ex: `docs: update agents and commit guide`
 - Descrição em **minúsculas**, sem ponto final
 - Imperativo: "add" não "added", "fix" não "fixed"
 - Escopo opcional, mas preferível quando relevante
 - Commits atômicos: um commit = uma mudança lógica
+- **Estilo preferido**: corpo com cada item começando por `-` (bullet point)
 - O agente deve preparar a mensagem de commit e enviar para o usuário validar antes de executar o commit
