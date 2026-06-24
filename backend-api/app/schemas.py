@@ -20,3 +20,14 @@ class MarketplaceLinkResponse(BaseModel):
     marketplace: str
     url: str
     created_at: str
+
+class PriceHistoryCreate(BaseModel):
+    price: float = Field(gt=0)
+    is_available: bool = True
+
+class PriceHistoryResponse(BaseModel):
+    id: str
+    link_id: str
+    price: float
+    is_available: bool
+    captured_at: str

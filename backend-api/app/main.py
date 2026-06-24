@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 import asyncpg
 from app.database import create_pool, close_pool, get_connection, release_connection
-from app.schemas import ProductCreate, ProductUpdate, ProductResponse, MarketplaceLinkCreate, MarketplaceLinkResponse
+from app.schemas import ProductCreate, ProductUpdate, ProductResponse, MarketplaceLinkCreate, MarketplaceLinkResponse, PriceHistoryCreate, PriceHistoryResponse
 
 
 app = FastAPI(title="SpyPrice API")
@@ -121,6 +121,25 @@ async def create_link(product_id: str, payload: MarketplaceLinkCreate):
     finally:
         await release_connection(conn)
 
+@app.put("/links/{link_id}", summary='Update link by ID', response_model=MarketplaceLinkResponse)
+async def update_link(link_id: str, payload: MarketplaceLinkCreate):
+    conn = await get_connection()
+    try:
+        row = await conn.fetchrow(
+            "SELECT id FROM marketplace_link WHERE id = $1", link_id
+        )
+        if not row:
+            raise HTTPException(status_code=404, detail='Link not found')
+        row = await conn.fetchrow(
+            "UPDATE marketplace_link SET marketplace = $1, url = $2 WHERE id = $3 RETURNING id, product_id, marketplace, url, created_at",
+            payload.marketplace, payload.url, link_id
+        )
+        return MarketplaceLinkResponse(id=str(row["id"]), product_id=str(row["product_id"]), marketplace=row["marketplace"], url=row["url"], created_at=str(row["created_at"]))
+    except asyncpg.exceptions.UniqueViolationError:
+        raise HTTPException(status_code=409, detail='URL already exists for another product')
+    finally:
+        await release_connection(conn)
+
 @app.delete("/links/{link_id}", summary='Delete link by ID', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_link(link_id: str):
     conn = await get_connection()
@@ -131,5 +150,34 @@ async def delete_link(link_id: str):
         if not row:
             raise HTTPException(status_code=404, detail='Link not found')
         await conn.execute("DELETE FROM marketplace_link WHERE id = $1", link_id)
+    finally:
+        await release_connection(conn)
+        
+@app.get("/links/{link_id}/prices", summary='List price history from link', response_model=list[PriceHistoryResponse])
+async def list_prices(link_id: str):
+    conn = await get_connection()
+    try:
+        rows = await conn.fetch(
+             "SELECT id, link_id, price, is_available, captured_at FROM price_history WHERE link_id = $1 ORDER BY captured_at DESC",
+            link_id
+        )
+        return [PriceHistoryResponse(id=str(r["id"]), link_id=str(r["link_id"]), price=float(r["price"]), is_available=r["is_available"], captured_at=str(r["captured_at"])) for r in rows]
+    finally:
+        await release_connection(conn)
+
+@app.post("/links/{link_id}/prices", summary='Create price record', status_code=201, response_model=PriceHistoryResponse)
+async def create_price(link_id: str, payload: PriceHistoryCreate):
+    conn = await get_connection()
+    try:
+        row = await conn.fetchrow(
+            "SELECT id FROM marketplace_link WHERE id = $1", link_id
+        )
+        if not row:
+            raise HTTPException(status_code=404, detail='Link not found')
+        row = await conn.fetchrow(
+            "INSERT INTO price_history (link_id, price, is_available) VALUES ($1, $2, $3) RETURNING id, captured_at",
+            link_id, payload.price, payload.is_available
+        )
+        return PriceHistoryResponse(id=str(row["id"]), link_id=link_id, price=payload.price, is_available=payload.is_available, captured_at=str(row["captured_at"]))
     finally:
         await release_connection(conn)
