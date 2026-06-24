@@ -62,6 +62,7 @@ async def update_product(product_id: str, payload: ProductUpdate):
         )
         if not row:
             raise HTTPException(status_code=404, detail='Product not found')
+        await conn.execute("UPDATE product SET name = $1 WHERE id = $2", payload.name, product_id)
         return {'id': product_id, 'name': payload.name}
     finally:
         await release_connection(conn)
