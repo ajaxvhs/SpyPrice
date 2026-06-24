@@ -1,10 +1,18 @@
 from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import create_pool, close_pool, get_connection, release_connection
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse
 
 
 app = FastAPI(title="SpyPrice API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup():
