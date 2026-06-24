@@ -56,8 +56,8 @@ python scripts/notion.py read <page_id>
 
 ## Banco
 
-3 tabelas: `products` (id UUID, name), `marketplace_links` (id UUID, product_id FK UUID, marketplace, url), `price_history` (id UUID, link_id FK UUID, price, is_available, captured_at). Schema via `db/init.sql` montado em `/docker-entrypoint-initdb.d/`.
+3 tabelas: `product` (id UUID, name), `marketplace_link` (id UUID, product_id FK UUID, marketplace, url), `price_history` (id UUID, link_id FK UUID, price, is_available, captured_at). Schema via `db/init.sql` montado em `/docker-entrypoint-initdb.d/`.
 
 ## Commits
 
-Seguir `docs/commit-guide.md`. Tipo `docs:` não usa escopo.
+Seguir `docs/commit-guide.md`.
