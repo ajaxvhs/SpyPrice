@@ -39,7 +39,7 @@ Toda mensagem de commit deve seguir a seguinte estrutura:
 | `infra`    | docker-compose.yml, Dockerfile, .dockerignore, .env, .gitignore |
 | `scraper`  | backend-scraper/                                                |
 | `frontend` | frontend/                                                       |
-| `notion`   | scripts/notion.py                                               |
+| `notion`   | local/scripts/notion.py                                         |
 
 ## ✅ Exemplos Reais
 

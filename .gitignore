@@ -9,6 +9,5 @@ __pycache__/
 # Docker Files
 postgres_data/
 
-# Tests
-scripts/
-docs/tests
+# Local files (personal, not versioned)
+/local/

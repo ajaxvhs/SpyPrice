@@ -1,63 +1,65 @@
 # AGENTS.md — SpyPrice
 
-## Regras
+Monitor de precos em marketplaces.
 
-- NUNCA criar/editar/deletar arquivos sem perguntar antes.
-- Apos alteracao significativa, atualizar este arquivo.
-- Ao preparar commit, mostrar mensagem completa ao usuario para validacao antes de executar.
-- Se algo nao estiver claro, pergunte antes de escrever uma unica linha. Nunca faca suposicoes silenciosas sobre intencao, arquitetura ou requisitos.
-- Sempre implemente a coisa mais simples que poderia funcionar. Nao adicione abstracoes ou flexibilidade que nao foram explicitamente solicitadas.
-- Se um arquivo ou funcao nao faz parte diretamente da tarefa atual, nao o modifique, mesmo que voce ache que ele poderia ser melhorado.
-- Se voce nao estiver confiante sobre uma abordagem ou detalhe tecnico, diga isso antes de prosseguir. A confianca sem certeza causa mais danos do que admitir uma lacuna.
-- Analise criticamente cada solicitacao: identifique problemas, ambiguidades e riscos antes de executar. Sugira alteracoes que julgar convenientes, mesmo quando nao solicitado. Nao aceite instrucoes cegamente.
+## Rules
 
-## Projeto
+- Ask before creating/editing/deleting any file.
+- Show full commit message for user validation before executing.
+- Critically analyze each request: identify problems, ambiguities, and risks before acting. Do not follow instructions blindly.
+- Implement the simplest thing that works. Do not add abstractions not explicitly requested.
 
-Monitor de precos em marketplaces. CRUD completo de produtos implementado.
-
-## Estrutura
-
-- `backend-api/app/main.py` — FastAPI (CRUD completo: GET+POST+PUT+DELETE /produtos, GET /produtos/{id}). POST recebe JSON body (`ProductCreate`), paginacao com `limit`/`offset`.
-- `backend-api/app/schemas.py` — Pydantic v2: ProductCreate, ProductUpdate, ProductResponse (Field, min_length=2)
-- `backend-api/app/database.py` — asyncpg pool (min=1, max=5, timeout=10, command_timeout=5), `load_dotenv()` no modulo
-- `backend-api/requirements.txt` — fastapi, uvicorn[standard], asyncpg, python-dotenv (pinned com `==`)
-- `backend-api/Dockerfile` — python:3.13-slim, CMD sem `--reload`
-- `backend-api/.dockerignore` — exclui `.venv/`, `.env`, `__pycache__/`
-- `backend-scraper/` — vazio
-- `frontend/` — vazio
-- `db/init.sql` — schema PostgreSQL (3 tabelas)
-- `scripts/notion.py` — CLI Notion, timeout=15s
-- `.prettierrc` — prettier config
-
-## .gitignore
-
-`.venv/`, `__pycache__/`, `*.pyc`, `.env`, `postgres_data/`, `scripts/`, `docs/` nao sao trackeados.
-
-## Comandos essenciais
+## Quick start
 
 ```powershell
 .venv\Scripts\Activate.ps1
 docker compose up -d                    # postgres:5432, pgadmin:8080, api:8000
-docker compose up -d --build            # reconstroi imagem da api
-docker compose down -v                  # derruba + apaga volumes
-docker compose logs backend-api         # logs do container api
-python scripts/notion.py list
-python scripts/notion.py read <page_id>
+docker compose up -d --build            # rebuild api image
+docker compose down -v                  # teardown + delete volumes
+docker compose logs backend-api         # api container logs
+python local/scripts/notion.py list
+python local/scripts/notion.py read <page_id>
+python local/scripts/notion.py append <page_id> <arquivo.md> --dry-run
+python local/scripts/notion.py append-text <page_id> 'texto' --dry-run
+python local/scripts/notion.py update-text <page_id> "old" "new" --dry-run
+python local/scripts/notion.py create-page <parent_page_id> "Titulo" --dry-run
 ```
 
-## Docker
+Notion script: `local/scripts/notion.py`. See `local/docs/notion.md` for full reference.
 
-- `DB_HOST` definido no compose (`postgres-db`); fallback para `localhost` fora do container.
-- Volume PostgreSQL montado em `/var/lib/postgresql` (sem `/data`).
-- Healthcheck no `postgres-db`; API espera `service_healthy`.
-- Portas `5432` e `8080` vinculadas apenas ao `127.0.0.1`.
-- Compose passa apenas envs necessarias (sem injetar `.env` inteiro).
-- Bind mount `./backend-api/app:/app/app` + `WATCHFILES_FORCE_POLLING=true` para hot-reload no Windows.
+## API (`backend-api/app/main.py`)
 
-## Banco
+FastAPI with asyncpg. CORS allows only `http://localhost:5173`. Port 8000.
 
-3 tabelas: `product` (id UUID, name), `marketplace_link` (id UUID, product_id FK UUID, marketplace, url), `price_history` (id UUID, link_id FK UUID, price, is_available, captured_at). Schema via `db/init.sql` montado em `/docker-entrypoint-initdb.d/`.
+| Endpoint | Method | Notes |
+|---|---|---|
+| `/produtos` | GET | Pagination: `limit` (max 50), `offset` |
+| `/produtos` | POST | JSON `ProductCreate` body |
+| `/produtos/{id}` | GET/PUT/DELETE | `ProductUpdate` on PUT |
+| `/produtos/{id}/links` | GET/POST | 409 on duplicate URL |
+| `/links/{id}` | PUT/DELETE | |
+| `/links/{id}/prices` | GET/POST | |
+
+DB pool: `min_size=1, max_size=5, timeout=10, command_timeout=5`. Retries 5x with 3s sleep on startup.
+
+## Database (`db/init.sql`)
+
+3 tables — `product`, `marketplace_link`, `price_history`. UUID PKs, `ON DELETE CASCADE`. Schema mounted at `/docker-entrypoint-initdb.d/`.
+
+## Docker quirks
+
+- `DB_HOST=postgres-db` inside compose; fallback `localhost` outside.
+- API waits for `service_healthy` on postgres (pg_isready healthcheck).
+- Ports 5432 and 8080 bound to `127.0.0.1` only.
+- Bind mount `./backend-api/app:/app/app` + `WATCHFILES_FORCE_POLLING=true` for hot-reload on Windows.
+- Compose injects only required env vars (no `.env` dump).
 
 ## Commits
 
-Seguir `docs/commit-guide.md`.
+Conventional Commits (`feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf`, `test`). Scopes: `api`, `db`, `infra`, `scraper`, `frontend`, `notion`. Messages in English, imperative mood. See `docs/commit-guide.md`.
+
+## State
+
+- `backend-scraper/`, `frontend/` — empty.
+- No test suite exists yet (planned in `local/docs/backend-api-todo.md`).
+- `.env` is gitignored; copy `.env.example` to get started.
