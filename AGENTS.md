@@ -38,7 +38,7 @@ FastAPI with asyncpg. CORS allows only `http://localhost:5173`. Port 8000.
 | `/produtos/{id}` | GET/PUT/DELETE | `ProductUpdate` on PUT |
 | `/produtos/{id}/links` | GET/POST | 409 on duplicate URL |
 | `/links/{id}` | PUT/DELETE | |
-| `/links/{id}/prices` | GET/POST | |
+| `/links/{id}/precos` | GET/POST | |
 
 DB pool: `min_size=1, max_size=5, timeout=10, command_timeout=5`. Retries 5x with 3s sleep on startup.
 
@@ -61,5 +61,6 @@ Conventional Commits (`feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `perf
 ## State
 
 - `backend-scraper/`, `frontend/` — empty.
-- No test suite exists yet (planned in `local/docs/backend-api-todo.md`).
+- Test suite: 31 tests passing (pytest, pytest-asyncio, httpx). See `backend-api/tests/`.
+- Lifespan pattern replaces deprecated `@app.on_event("startup"/"shutdown")`.
 - `.env` is gitignored; copy `.env.example` to get started.

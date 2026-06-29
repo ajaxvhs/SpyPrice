@@ -3,9 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncpg
 from app.database import create_pool, close_pool, get_connection, release_connection
 from app.schemas import ProductCreate, ProductUpdate, ProductResponse, MarketplaceLinkCreate, MarketplaceLinkResponse, PriceHistoryCreate, PriceHistoryResponse
+from contextlib import asynccontextmanager
 
+@asynccontextmanager
+async def lifespan(app):
+    await create_pool()
+    yield
+    await close_pool()
 
-app = FastAPI(title="SpyPrice API")
+app = FastAPI(title="SpyPrice API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,16 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def startup():
-    await create_pool()
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    await close_pool()
-
 
 @app.get("/produtos", summary='List all products', response_model=list[ProductResponse])
 async def list_product(
