@@ -153,7 +153,7 @@ async def delete_link(link_id: str):
     finally:
         await release_connection(conn)
         
-@app.get("/links/{link_id}/prices", summary='List price history from link', response_model=list[PriceHistoryResponse])
+@app.get("/links/{link_id}/precos", summary='List price history from link', response_model=list[PriceHistoryResponse])
 async def list_prices(link_id: str):
     conn = await get_connection()
     try:
@@ -165,7 +165,7 @@ async def list_prices(link_id: str):
     finally:
         await release_connection(conn)
 
-@app.post("/links/{link_id}/prices", summary='Create price record', status_code=201, response_model=PriceHistoryResponse)
+@app.post("/links/{link_id}/precos", summary='Create price record', status_code=201, response_model=PriceHistoryResponse)
 async def create_price(link_id: str, payload: PriceHistoryCreate):
     conn = await get_connection()
     try:

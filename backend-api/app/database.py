@@ -1,4 +1,7 @@
-import os, asyncio, asyncpg
+import os
+import asyncio
+
+import asyncpg
 
 from dotenv import load_dotenv
 from asyncpg import CannotConnectNowError
